@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="AndroidTestSuite">
+    <test name="AndroidTest" parallel="none">
+        <parameter name="platform" value="android"/>
+        <classes>
+         <class name="Tests.OptionsPlayLoginTest"></class>
+            <class name="Tests.OptionsPlayForgotPasswordTest"></class>
+        </classes>
+    </test>
+</suite>

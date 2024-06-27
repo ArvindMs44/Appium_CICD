@@ -1,0 +1,27 @@
+setup_environment:
+  stage: test
+  tags:
+    - windows
+  script:
+    # Install Node.js
+    - choco install nodejs.install -y
+    - node -v
+    - npm -v
+
+    # Install Appium
+    - npm install -g appium
+    - npm install -g appium-doctor
+
+    # Verify Appium installation
+    - appium-doctor --android
+
+    # Install Maven
+    - choco install maven -y
+    - refreshenv
+    - echo $env:Path
+    - where mvn
+    - mvn -v
+
+    # Install dependencies
+    - npm install
+    - mvn clean install

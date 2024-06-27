@@ -1,0 +1,41 @@
+name: Appium CI with Maven
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test_android:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 20 on Windows
+        uses: actions/setup-java@v3
+        with:
+          java-version: '20'
+          distribution: 'temurin'
+      - name: Download Android SDK
+        run: |
+          choco install -y android-sdk
+          echo "sdk.dir=C:\\Android\\android-sdk" > local.properties
+      - name: Set up Android SDK
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3" "system-images;android-30;default;x86_64"
+      - name: Create Android Emulator
+        run: avdmanager create avd -n test -k "system-images;android-30;default;x86_64" --device "Nexus 5X"
+      - name: Start Android Emulator
+        run: |
+          emulator -avd test -no-audio -no-boot-anim -accel auto -gpu off &
+          adb wait-for-device
+          adb shell input keyevent 82
+      - name: Set App Package and Activity
+        run: |
+          echo "APP_PACKAGE=com.optionsplay.app" >> $GITHUB_ENV
+          echo "APP_ACTIVITY=com.optionsplay.app.MainActivity" >> $GITHUB_ENV
+      - name: Run Appium Tests on Android
+        run: mvn test "-Dsurefire.suiteXmlFiles=src/main/resources/testsuites/AndroidTest.xml" -DappPackage=$APP_PACKAGE -DappActivity=$APP_ACTIVITY
+      - name: Generate Report on Android
+        run: mvn surefire-report:report
