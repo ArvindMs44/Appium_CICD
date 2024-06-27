@@ -20,22 +20,24 @@ jobs:
         run: |
           choco install -y android-sdk
           echo "sdk.dir=C:\\Android\\android-sdk" > local.properties
+          echo "C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin" >> $env:GITHUB_PATH
+          echo "C:\\Android\\android-sdk\\platform-tools" >> $env:GITHUB_PATH
       - name: Set up Android SDK
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3" "system-images;android-30;default;x86_64"
+          yes | C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager --licenses
+          C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3" "system-images;android-30;default;x86_64"
       - name: Create Android Emulator
-        run: avdmanager create avd -n test -k "system-images;android-30;default;x86_64" --device "Nexus 5X"
+        run: C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\avdmanager create avd -n test -k "system-images;android-30;default;x86_64" --device "Nexus 5X"
       - name: Start Android Emulator
         run: |
-          emulator -avd test -no-audio -no-boot-anim -accel auto -gpu off &
+          C:\\Android\\android-sdk\\emulator\\emulator -avd test -no-audio -no-boot-anim -accel auto -gpu off &
           adb wait-for-device
           adb shell input keyevent 82
       - name: Set App Package and Activity
         run: |
-          echo "APP_PACKAGE=com.optionsplay.app" >> $GITHUB_ENV
-          echo "APP_ACTIVITY=com.optionsplay.app.MainActivity" >> $GITHUB_ENV
+          echo "APP_PACKAGE=com.optionsplay.app" >> $env:GITHUB_ENV
+          echo "APP_ACTIVITY=com.optionsplay.app.MainActivity" >> $env:GITHUB_ENV
       - name: Run Appium Tests on Android
-        run: mvn test "-Dsurefire.suiteXmlFiles=src/main/resources/testsuites/AndroidTest.xml" -DappPackage=$APP_PACKAGE -DappActivity=$APP_ACTIVITY
+        run: mvn test "-Dsurefire.suiteXmlFiles=src/main/resources/testsuites/AndroidTest.xml" -DappPackage=$env:APP_PACKAGE -DappActivity=$env:APP_ACTIVITY
       - name: Generate Report on Android
         run: mvn surefire-report:report
