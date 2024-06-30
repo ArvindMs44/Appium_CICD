@@ -29,21 +29,12 @@ jobs:
         run: echo y | C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager --licenses
 
       - name: Install Android SDK Packages
-        run: C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3" "system-images;android-30;default;x86_64"
+        run: C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
 
-      - name: Create Android Emulator
-        run: C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\avdmanager create avd -n test -k "system-images;android-30;default;x86_64" --device "Nexus 5X"
-
-      - name: Start Android Emulator
+      - name: Connect to Real Android Device
         run: |
-          C:\\Android\\android-sdk\\emulator\\emulator -avd test -no-audio -no-boot-anim -accel auto -gpu off &
-          echo "Waiting for emulator to start..."
+          adb devices
           adb wait-for-device
-          adb shell input keyevent 82
-          sleep 30 # Wait for the emulator to fully boot
-
-      - name: Verify Emulator is Running
-        run: adb devices
 
       - name: Set App Package and Activity
         run: |
