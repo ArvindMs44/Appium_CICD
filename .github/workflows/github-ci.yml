@@ -1,4 +1,4 @@
-name: Appium CI with Maven
+name: Appium CI with Maven on Real Device
 
 on:
   push:
@@ -31,10 +31,13 @@ jobs:
       - name: Install Android SDK Packages
         run: C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
 
-      - name: Connect to Real Android Device
+      - name: Wait for Real Android Device
         run: |
           adb devices
+          sleep 10
           adb wait-for-device
+          adb devices # Check again to ensure the device is connected
+          adb shell input keyevent 82 # Unlocks the device screen
 
       - name: Set App Package and Activity
         run: |
