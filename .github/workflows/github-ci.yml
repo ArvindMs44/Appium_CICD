@@ -1,59 +1,36 @@
-name: appium-android
-
+name: Appium CI
 on:
   push:
-    branches: [ "main" ]
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
 
 jobs:
-  run-mobile-tests:
+  ui-tests:
+    strategy:
+      matrix:
+        api-level: [28]
+        target: [default]
     runs-on: macos-latest
-
     steps:
-      - name: Setup Java
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3.6.0
         with:
           distribution: 'temurin'
-          java-version: '11'
-
-      - name: Pull the project into the runner
-        uses: actions/checkout@v3
-
-      - name: Install dependencies
+          java-version: 11
+          cache: 'gradle'
+      - name: Install the Emulator
         run: |
-          brew tap homebrew/cask
-          brew install --cask android-sdk
-          echo "export ANDROID_HOME=/usr/local/share/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
-
-      - name: Install JAXB dependencies
-        run: |
-          mvn dependency:get -Dartifact=javax.xml.bind:jaxb-api:2.3.1
-          mvn dependency:get -Dartifact=com.sun.xml.bind:jaxb-core:2.3.0.1
-          mvn dependency:get -Dartifact=com.sun.xml.bind:jaxb-impl:2.3.2
-
-      - name: Accept SDK licenses
-        run: yes | sdkmanager --licenses
-
-      - name: Install Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-29" "emulator"
-
-      - name: Setup Appium
-        run: |
-          npm install -g appium@1.22
-          appium -v
-          nohup appium &>/dev/null &
-
-      - name: Start Emulator
-        run: |
-          echo "no" | avdmanager create avd -n test -k "system-images;android-29;google_apis;x86_64"
-          $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-boot-anim -gpu auto -qemu -m 2048 &
-          adb wait-for-device
-          adb shell input keyevent 82
-
-      - name: Wait for Emulator to be ready
-        run: |
-          adb wait-for-device
-          adb shell getprop init.svc.bootanim | grep -m 1 stopped
-
-      - name: Run Android tests
-        run: mvn clean test
+          chmod +x ./scripts/RunAppiumServer.sh
+          ./scripts/RunAppiumServer.sh
+        shell: bash
+      - name: Run Appium Tests
+        uses: reactivecircus/android-emulator-runner@v2.27.0
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: Nexus 6
+          script: mvn clean test
