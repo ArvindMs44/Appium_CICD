@@ -1,4 +1,5 @@
 name: Appium CI
+
 on:
   push:
     branches: [ master ]
@@ -15,22 +16,37 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up JDK 11
         uses: actions/setup-java@v3.6.0
         with:
           distribution: 'temurin'
           java-version: 11
           cache: 'gradle'
-      - name: Install the emulator
+
+      - name: Install Android SDK
         run: |
-          chmod +x ./scripts/RunAppiumServer.sh
-          ./scripts/RunAppiumServer.sh
-        shell: bash
-      - name: Run Appium Tests
+          brew tap homebrew/cask
+          brew install --cask android-sdk
+          echo "export ANDROID_HOME=/usr/local/share/android-sdk" >> $GITHUB_ENV
+          echo "export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager --update
+          sdkmanager "platform-tools" "platforms;android-${{ matrix.api-level }}" "emulator" "system-images;android-${{ matrix.api-level }};google_apis;x86_64"
+          yes | sdkmanager --licenses
+
+      - name: Set up and run Appium Server
+        run: |
+          npm install -g appium@1.22
+          nohup appium &>/dev/null &
+
+      - name: Run Android Emulator
         uses: reactivecircus/android-emulator-runner@v2.27.0
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
           arch: x86_64
           profile: Nexus 6
-          script: mvn clean test
+          script: adb wait-for-device && mvn clean test
