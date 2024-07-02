@@ -43,7 +43,7 @@ public class OptionsPlayBaseClass {
                 android_capabilities.setCapability(AndroidMobileCapabilityType.APP_PACKAGE, ConstantsClass.androidAppPackage);
                 android_capabilities.setCapability(AndroidMobileCapabilityType.APP_ACTIVITY, ConstantsClass.androidAppActivity);
                 driver = new AndroidDriver<>(new URL(ConstantsClass.appiumserverUrl), android_capabilities);
-                ((CanRecordScreen) driver).startRecordingScreen();
+//                ((CanRecordScreen) driver).startRecordingScreen();
                 break;
             case "ios":
                 ios_capabilities = new DesiredCapabilities();
@@ -51,7 +51,7 @@ public class OptionsPlayBaseClass {
                 ios_capabilities.setCapability("xcodeOrgId", "your-xcode-org-id");
                 ios_capabilities.setCapability("xcodeSigningId", "iPhone Developer");
                 driver = new IOSDriver<>(new URL(ConstantsClass.appiumserverUrl), ios_capabilities);
-                ((CanRecordScreen) driver).startRecordingScreen();
+//                ((CanRecordScreen) driver).startRecordingScreen();
                 break;
             default:
                 throw new IllegalArgumentException("Platform not supported: " + platform);
@@ -61,11 +61,11 @@ public class OptionsPlayBaseClass {
     @AfterClass
     public void tearDown() throws IOException {
         if (driver != null) {
-            String base64String = ((CanRecordScreen)driver).stopRecordingScreen();
-            byte[] data = Base64.decodeBase64(base64String);
-            String destinationPath = ConstantsClass.screenrecordingPath;
-            Path path = Paths.get(destinationPath);
-            Files.write(path, data);
+//            String base64String = ((CanRecordScreen)driver).stopRecordingScreen();
+//            byte[] data = Base64.decodeBase64(base64String);
+//            String destinationPath = ConstantsClass.screenrecordingPath;
+//            Path path = Paths.get(destinationPath);
+//            Files.write(path, data);
             driver.quit();
             service.stop();
         }

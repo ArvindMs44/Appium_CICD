@@ -1,51 +1,37 @@
-name: Appium CI with Maven on Real Device
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: appium-android
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  test_android:
-    runs-on: windows-latest
+  build:
+    runs-on: macos-latest # the machine type
+    strategy: # we are using strategy if we need to run on parallel with different devices and version
+      matrix:
+        api-level: [30] #Google api level for example [25,23,28] 
+        target: [default]
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 20 on Windows
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v2 #checkout the code
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
         with:
-          java-version: '20'
-          distribution: 'temurin'
-
-      - name: Download and Set up Android SDK
+          java-version: 1.8
+      - name: Install and Run Appium Server
         run: |
-          choco install -y android-sdk
-          echo "sdk.dir=C:\\Android\\android-sdk" > local.properties
-          echo "C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin" >> $env:GITHUB_PATH
-          echo "C:\\Android\\android-sdk\\platform-tools" >> $env:GITHUB_PATH
-
-      - name: Accept Android SDK Licenses
-        run: echo y | C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager --licenses
-
-      - name: Install Android SDK Packages
-        run: C:\\Android\\android-sdk\\cmdline-tools\\latest\\bin\\sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
-
-      - name: Wait for Real Android Device
-        run: |
-          adb devices
-          sleep 10
-          adb wait-for-device
-          adb devices # Check again to ensure the device is connected
-          adb shell input keyevent 82 # Unlocks the device screen
-
-      - name: Set App Package and Activity
-        run: |
-          echo "APP_PACKAGE=com.optionsplay.app" >> $env:GITHUB_ENV
-          echo "APP_ACTIVITY=com.optionsplay.app.MainActivity" >> $env:GITHUB_ENV
-
-      - name: Run Appium Tests on Android
-        run: mvn test "-Dsurefire.suiteXmlFiles=src/main/resources/testsuites/AndroidTest.xml" -DappPackage=$env:APP_PACKAGE -DappActivity=$env:APP_ACTIVITY
-
-      - name: Generate Report on Android
-        run: mvn surefire-report:report
+          npm install -g appium@v1.20.2
+             appium -v
+             appium &>/dev/null &
+      - name: Run Appium Tests
+        uses: reactivecircus/android-emulator-runner@v1 # install and create the Emulator
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: Nexus 6
+          # script: ./mvn test --info
+          script: mvn clean test # running our test with info to check the results
+  
