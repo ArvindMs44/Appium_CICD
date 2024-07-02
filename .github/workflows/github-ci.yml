@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '11'
 
       - name: Pull the project into the runner
         uses: actions/checkout@v3
@@ -24,6 +24,12 @@ jobs:
           brew install --cask android-sdk
           echo "export ANDROID_HOME=/usr/local/share/android-sdk" >> $GITHUB_ENV
           echo "export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
+
+      - name: Install JAXB dependencies
+        run: |
+          mvn dependency:get -Dartifact=javax.xml.bind:jaxb-api:2.3.1
+          mvn dependency:get -Dartifact=com.sun.xml.bind:jaxb-core:2.3.0.1
+          mvn dependency:get -Dartifact=com.sun.xml.bind:jaxb-impl:2.3.2
 
       - name: Accept SDK licenses
         run: yes | sdkmanager --licenses
