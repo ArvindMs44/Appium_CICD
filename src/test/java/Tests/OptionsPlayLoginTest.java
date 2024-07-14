@@ -16,8 +16,8 @@ import static utils.ExcelClass.*;
 @Listeners(ListenerClass.class)
 
 public class OptionsPlayLoginTest extends OptionsPlayBaseClass {
-    private OptionsPlayLoginPage loginPage;
-    private GenericMethodsClass genericMethods;
+    OptionsPlayLoginPage loginPage = new OptionsPlayLoginPage(driver);
+    GenericMethodsClass genericMethods = new GenericMethodsClass(driver);
 
     @BeforeClass
     public void setUpPage() {

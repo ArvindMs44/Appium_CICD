@@ -1,27 +1,53 @@
-setup_environment:
-  stage: test
-  tags:
-    - windows
+stages:
+  - setup
+  - test
+
+variables:
+  ANDROID_HOME: "/usr/local/share/android-sdk"
+  PATH: "$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+  JAVA_HOME: "/usr/lib/jvm/java-11-openjdk"
+
+setup-jdk:
+  stage: setup
+  image: openjdk:11
   script:
-    # Install Node.js
-    - choco install nodejs.install -y
-    - node -v
-    - npm -v
+    - echo "Set up JDK 11"
+  artifacts:
+    paths:
+      - /usr/lib/jvm/java-11-openjdk
 
-    # Install Appium
-    - npm install -g appium
-    - npm install -g appium-doctor
+install-android-sdk:
+  stage: setup
+  image: node:14
+  before_script:
+    - apt-get update && apt-get install -y wget tar
+    - wget https://dl.google.com/android/repository/commandlinetools-linux-6609375_latest.zip -O commandlinetools.zip
+    - unzip commandlinetools.zip -d /usr/local/share/android-sdk
+    - mkdir -p /usr/local/share/android-sdk/.android
+    - touch /usr/local/share/android-sdk/.android/repositories.cfg
+    - echo "export ANDROID_HOME=/usr/local/share/android-sdk" >> /etc/profile.d/android-sdk.sh
+    - echo "export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH" >> /etc/profile.d/android-sdk.sh
+    - source /etc/profile.d/android-sdk.sh
+  script:
+    - echo "Install Android SDK"
+    - sdkmanager --update
+    - sdkmanager "platform-tools" "platforms;android-28" "emulator" "system-images;android-28;google_apis;x86_64"
+    - yes | sdkmanager --licenses
 
-    # Verify Appium installation
-    - appium-doctor --android
-
-    # Install Maven
-    - choco install maven -y
-    - refreshenv
-    - echo $env:Path
-    - where mvn
-    - mvn -v
-
-    # Install dependencies
-    - npm install
-    - mvn clean install
+run-ui-tests:
+  stage: test
+  image: reactnativecommunity/react-native-android
+  services:
+    - name: docker:19.03.12
+      alias: docker
+  before_script:
+    - source /etc/profile.d/android-sdk.sh
+    - npm install -g appium@1.22
+    - nohup appium &>/dev/null &
+  script:
+    - echo "Run Android Emulator"
+    - sdkmanager "emulator"
+    - echo no | avdmanager create avd -n test -k "system-images;android-28;google_apis;x86_64"
+    - $ANDROID_HOME/emulator/emulator -avd test -no-skin -no-audio -no-window -gpu off &
+    - adb wait-for-device
+    - mvn clean test

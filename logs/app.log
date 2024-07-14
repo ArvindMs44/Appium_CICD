@@ -145,3 +145,14 @@ INFO  - TEST PASSED: verifyInvalidForgotPassword1
 INFO  - TEST PASSED: verifyInvalidForgotPassword1
 INFO  - TEST PASSED: verifyInvalidForgotPassword2
 INFO  - TEST PASSED: takeScreenshot
+INFO  - TEST PASSED: navigateToLoginPage
+INFO  - TEST PASSED: verifyInvalidLogin1
+INFO  - TEST PASSED: verifyInvalidLogin2
+INFO  - TEST PASSED: verifyInvalidLogin3
+INFO  - TEST PASSED: takeScreenshot
+INFO  - TEST PASSED: navigateToForgotPasswordPage
+INFO  - TEST PASSED: verifyInvalidForgotPassword1
+INFO  - TEST PASSED: verifyInvalidForgotPassword1
+INFO  - TEST PASSED: verifyInvalidForgotPassword1
+INFO  - TEST PASSED: verifyInvalidForgotPassword2
+INFO  - TEST PASSED: takeScreenshot
